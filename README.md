@@ -19,8 +19,6 @@ Two datasets were provided:
 1. `Pharma_subset.vcf.gz`  
    A reduced VCF containing 10 samples and approximately 38,000 variants relevant for pharmacological profiling.
 
-2. `1kG_Full_dataset.vcf.gz`  
-   A full WGS VCF containing 110 samples and approximately 70.9 million variants, including the same 10 samples from the pharmacogenomic task and 100 additional European samples.
 
 The current implementation focuses on the reduced pharmacogenomic subset VCF.
 
