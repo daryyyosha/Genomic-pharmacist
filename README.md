@@ -1,10 +1,8 @@
 # Genomic Pharmacist
 
-Custom pharmacogenomic interpretation pipeline for VCF-based drug response analysis.
+`Genomic Pharmacist` is a custom pharmacogenomic interpretation pipeline for VCF-based drug response analysis.
 
-`Genomic Pharmacist` is a lightweight Python pipeline that analyzes pharmacogenetic markers from a VCF file and generates drug-specific recommendations without using PharmCAT.
-
-The pipeline extracts target variants, classifies SNP genotypes, calls star-allele diplotypes, maps diplotypes to pharmacogenetic phenotypes, applies manually curated clinical rules, and generates both TSV outputs and an HTML report.
+The project implements a lightweight Python workflow that analyzes pharmacogenetic markers from a VCF file and generates drug-specific recommendations without using PharmCAT. The pipeline extracts target variants, classifies SNP genotypes, calls star-allele diplotypes, applies manually curated pharmacogenomic rules, and generates both TSV output tables and a human-readable HTML report.
 
 ---
 
@@ -22,13 +20,13 @@ These markers may include:
 
 The task required implementing a custom interpretation pipeline instead of using PharmCAT, a widely used pharmacogenomic clinical annotation tool [1].
 
-The pipeline was developed to process pharmacogenomic markers from a reduced 1000 Genomes VCF dataset and produce interpretable drug recommendations based on manually curated rules.
+The pipeline was developed to process pharmacogenomic markers from a reduced 1000 Genomes VCF dataset and produce interpretable drug recommendations based on manually curated pharmacogenomic rules.
 
 ---
 
 ## Input data
 
-The project was designed for 1000 Genomes samples aligned to the hg38 genome build.
+The project was designed for 1000 Genomes samples aligned to the **GRCh38 / hg38 human genome build**.
 
 Two datasets were provided for the task:
 
@@ -45,50 +43,54 @@ In the final local run, the input file was used as:
 input/Pharma_subset.vcf
 ```
 
-The pipeline supports both uncompressed `.vcf` and gzip-compressed `.vcf.gz` files.
+The input VCF is not included in this repository because genomic input files can be large and may contain individual-level genetic data.
+
+The target coordinates in `pgx_variants.tsv` are intended for the **GRCh38 / hg38** human genome build. The GRCh38 reference FASTA file is not included in the repository because it is a large public reference file and is not required for running the current pipeline.
 
 ---
 
-## Headline results
+## Repository contents
 
-The final run was performed on 10 samples.
-
-```text
-HG00367
-HG01061
-HG01892
-HG03069
-HG04227
-NA18939
-NA19007
-NA20299
-NA21091
-NA21120
-```
-
-Main output statistics:
-
-| Output | Count |
-|---|---:|
-| Samples analyzed | 10 |
-| Target markers per sample | 195 |
-| Extracted variant records | 1950 |
-| Successfully called markers per sample | 195 |
-| Call rate | 1.0 |
-| Gene/SNP call records | 420 |
-| Final drug recommendation records | 54 |
-| Drugs with generated recommendations | 6 |
-
-The final report includes recommendations for:
+The repository contains the pipeline script, manually curated rule tables, and output files generated from the final run.
 
 ```text
-sertraline
-clopidogrel
-efavirenz
-voriconazole
-tacrolimus
-rosuvastatin
+Genomic-pharmacist/
+│
+├── README.md
+├── pgx_pipeline.py
+│
+├── pgx_variants.tsv
+├── star_alleles.tsv
+├── rulessnp_rules.tsv
+├── rulesstar_alleles.tsv
+├── rules_comb_star_alleles_snp.tsv
+├── rules_comb_star_alleles.tsv
+│
+├── extracted_variants.tsv
+├── coverage_report.tsv
+├── gene_calls.tsv
+├── drug_report.tsv
+├── summary_by_sample.tsv
+└── sample_report.html
 ```
+
+The repository includes the following files:
+
+| File | Description |
+|---|---|
+| `pgx_pipeline.py` | Main Python pipeline script |
+| `pgx_variants.tsv` | Coordinates of target pharmacogenetic markers |
+| `star_alleles.tsv` | Star-allele definitions |
+| `rulessnp_rules.tsv` | Direct SNP-based drug recommendation rules |
+| `rulesstar_alleles.tsv` | Diplotype-to-phenotype and drug recommendation rules |
+| `rules_comb_star_alleles_snp.tsv` | Combined star-allele + SNP rules |
+| `rules_comb_star_alleles.tsv` | Combined star-allele + star-allele rules |
+| `extracted_variants.tsv` | Variants extracted from the input VCF |
+| `coverage_report.tsv` | Quality-control report for marker calling |
+| `gene_calls.tsv` | SNP genotype calls and star-allele diplotype calls |
+| `drug_report.tsv` | Final pharmacogenomic recommendation table |
+| `summary_by_sample.tsv` | Compact summary of recommendations per sample |
+| `sample_report.html` | Human-readable pharmacogenetic report |
 
 ---
 
@@ -105,7 +107,7 @@ Pharma_subset.vcf
 extracted_variants.tsv
         |
         |  PGxCaller
-        |  SNP genotype classification + star-allele diplotype calling
+        |  SNP genotype classification and star-allele diplotype calling
         v
 gene_calls.tsv + coverage_report.tsv
         |
@@ -120,14 +122,71 @@ drug_report.tsv + summary_by_sample.tsv
 sample_report.html
 ```
 
-The pipeline consists of four main logical modules:
+The main pipeline script is:
 
-| Module | Role |
+```text
+pgx_pipeline.py
+```
+
+It consists of four logical modules:
+
+| Module | Purpose |
 |---|---|
-| `VCFExtractor` | Extracts target pharmacogenetic variants from the VCF |
-| `PGxCaller` | Calls SNP genotypes and star-allele diplotypes |
-| `RulesEngine` | Applies pharmacogenomic interpretation rules |
-| `Reporter` | Generates TSV summaries and an HTML report |
+| `VCFExtractor` | Reads the input VCF and extracts only target pharmacogenetic variants |
+| `PGxCaller` | Converts extracted VCF genotypes into SNP calls and star-allele diplotypes |
+| `RulesEngine` | Applies manually curated pharmacogenomic interpretation rules |
+| `Reporter` | Generates the final HTML report and summary tables |
+
+---
+
+## Rule tables
+
+The interpretation is based on manually curated TSV rule tables.
+
+| Rule table | Purpose |
+|---|---|
+| `pgx_variants.tsv` | Coordinates of target pharmacogenetic markers for GRCh38 / hg38 |
+| `star_alleles.tsv` | Definitions of star alleles through marker IDs |
+| `rulessnp_rules.tsv` | Direct SNP-based drug recommendation rules |
+| `rulesstar_alleles.tsv` | Diplotype-to-phenotype and drug recommendation rules |
+| `rules_comb_star_alleles_snp.tsv` | Combined star-allele + SNP rules |
+| `rules_comb_star_alleles.tsv` | Combined star-allele + star-allele rules |
+
+---
+
+## Star allele curation
+
+During the project, the `star_alleles.tsv` table was additionally curated.
+
+A key issue was that some star-allele definitions cannot be represented only by a marker ID. For several markers, the same rsID can correspond to more than one possible alternative allele. Therefore, the table was extended with the `required_allele` column.
+
+Example:
+
+```text
+CYP2D6    *50    rs267608302    G
+```
+
+This means that the `G` allele at `rs267608302` is required for this star-allele definition.
+
+This step was necessary because some pharmacogenetic markers are multi-allelic. In such cases, the marker ID alone is not sufficient for reliable interpretation.
+
+Ambiguous cases were manually checked using pharmacogenomic sources. Rows without reliable allele assignment were excluded from the final working table to avoid unsupported star-allele calls.
+
+---
+
+## HLA-B*58:01 and allopurinol
+
+Allopurinol was considered through the clinically important `HLA-B*58:01` association, which is related to the risk of severe cutaneous adverse reactions [3].
+
+However, the reduced VCF used in this project did not contain:
+
+- direct HLA typing data;
+- the proxy marker `rs9263726`;
+- another validated HLA-B*58:01 marker available for this workflow.
+
+Therefore, the allopurinol / `HLA-B*58:01` rule was excluded from the active interpretation workflow.
+
+This decision was made to avoid false or unsupported clinical interpretation when the required HLA information is absent. Future support for this drug would require direct HLA typing from FASTQ/BAM data, a full VCF with validated HLA proxy markers, or integration of a dedicated HLA typing tool.
 
 ---
 
@@ -148,78 +207,49 @@ The pipeline requires Python 3 and `pandas`.
 pip install pandas
 ```
 
-### 3. Prepare input files
+### 3. Prepare the input VCF
 
-The input VCF should be placed in the project directory or in an `input/` folder.
-
-Example:
+Place the input VCF locally, for example:
 
 ```text
 input/Pharma_subset.vcf
 ```
 
-The VCF file itself does not have to be stored in GitHub if it is large or contains sensitive genomic data.
+The input VCF is not included in the repository.
 
 ### 4. Run the pipeline
+
+Since the rule tables are stored in the repository root, use the current directory as `--rules_dir`:
 
 ```bash
 python pgx_pipeline.py \
   --vcf input/Pharma_subset.vcf \
-  --rules_dir rules/ \
+  --rules_dir . \
   --out_dir output/
 ```
 
-### 5. Check generated results
+### 5. Check generated files
 
-The pipeline generates intermediate and final output files, including:
+The pipeline produces intermediate and final output files:
 
 ```text
-extracted_variants.tsv
-coverage_report.tsv
-gene_calls.tsv
-drug_report.tsv
-summary_by_sample.tsv
-sample_report.html
+output/extracted_variants.tsv
+output/coverage_report.tsv
+output/gene_calls.tsv
+output/reports/drug_report.tsv
+output/reports/summary_by_sample.tsv
+output/reports/sample_report.html
 ```
 
----
-
-## Repository files
-
-The repository contains the main script and generated output files from the final run.
-
-| File | Description |
-|---|---|
-| `pgx_pipeline.py` | Main Python pipeline script |
-| `extracted_variants.tsv` | Target variants extracted from the input VCF |
-| `coverage_report.tsv` | Quality-control report for marker calling |
-| `gene_calls.tsv` | SNP genotype calls and star-allele diplotype calls |
-| `drug_report.tsv` | Final pharmacogenomic recommendation table |
-| `summary_by_sample.tsv` | Compact summary of recommendations per sample |
-| `sample_report.html` | Human-readable pharmacogenetic report |
+In this repository, the generated output files from the final run were uploaded to the repository root for demonstration.
 
 ---
 
-## Rule tables
-
-The pipeline uses manually curated TSV rule tables.
-
-| Rule table | Purpose |
-|---|---|
-| `pgx_variants.tsv` | Coordinates of target pharmacogenetic markers |
-| `star_alleles.tsv` | Star-allele definitions |
-| `rulessnp_rules.tsv` | Direct SNP-based drug recommendations |
-| `rulesstar_alleles.tsv` | Diplotype-to-phenotype and drug recommendation rules |
-| `rules_comb_star_alleles_snp.tsv` | Combined star-allele + SNP rules |
-| `rules_comb_star_alleles.tsv` | Combined star-allele + star-allele rules |
-
----
-
-## Output file descriptions
+## Output files
 
 ### `extracted_variants.tsv`
 
-This file contains raw target variants extracted from the input VCF.
+This file contains target variants extracted from the input VCF.
 
 Columns:
 
@@ -236,13 +266,13 @@ raw_gt
 genotype
 ```
 
-This file is the direct result of VCF parsing and target marker extraction.
+This file is the direct result of target marker extraction.
 
 ---
 
 ### `coverage_report.tsv`
 
-This file is used for quality control. It shows how many target markers were successfully called for each sample.
+This is a quality-control file showing how many target markers were successfully called for each sample.
 
 Columns:
 
@@ -278,20 +308,20 @@ confidence
 warnings
 ```
 
-The file includes:
+It includes:
 
 - `SNP` calls for individual markers;
 - `STAR` calls for gene-level diplotypes.
 
-Examples of possible outputs:
+Example call types and results:
 
 ```text
-HOM_REF
-HET
-HOM_ALT
-*1/*1
-*1/*3
-*3/*3
+SNP     HOM_REF
+SNP     HET
+SNP     HOM_ALT
+STAR    *1/*1
+STAR    *1/*3
+STAR    *3/*3
 ```
 
 ---
@@ -319,7 +349,7 @@ It contains the final matched pharmacogenomic rules and drug-specific recommenda
 
 ### `summary_by_sample.tsv`
 
-This file provides a compact summary of how many recommendation rules were matched for each patient and drug.
+This file summarizes how many recommendation rules were matched for each sample and drug.
 
 Columns:
 
@@ -333,9 +363,9 @@ rule_matches
 
 ### `sample_report.html`
 
-This file is a human-readable pharmacogenetic report generated from `drug_report.tsv`.
+This is a human-readable pharmacogenetic report generated from `drug_report.tsv`.
 
-It groups results by patient and displays:
+The report groups results by patient and displays:
 
 - drug;
 - target gene or marker;
@@ -346,7 +376,37 @@ It groups results by patient and displays:
 
 ---
 
-## Supported drugs in the final run
+## Final run summary
+
+The final run was performed on 10 samples:
+
+```text
+HG00367
+HG01061
+HG01892
+HG03069
+HG04227
+NA18939
+NA19007
+NA20299
+NA21091
+NA21120
+```
+
+Main output statistics:
+
+| Output | Count |
+|---|---:|
+| Samples analyzed | 10 |
+| Target markers per sample | 195 |
+| Extracted variant records | 1950 |
+| Successfully called markers per sample | 195 |
+| Call rate | 1.0 |
+| Gene/SNP call records | 420 |
+| Final drug recommendation records | 54 |
+| Drugs with generated recommendations | 6 |
+
+The final report includes recommendations for the following drugs:
 
 | Drug | Main pharmacogenetic target |
 |---|---|
@@ -359,53 +419,11 @@ It groups results by patient and displays:
 
 ---
 
-## Star allele curation
-
-During rule curation, the `star_alleles.tsv` table was improved by adding the `required_allele` column.
-
-This column specifies which nucleotide allele is required for a given star-allele marker.
-
-Example:
-
-```text
-CYP2D6    *50    rs267608302    G
-```
-
-This means that the `G` allele at `rs267608302` is required for the corresponding star-allele definition.
-
-This step was necessary because some pharmacogenetic markers are multi-allelic. In such cases, the marker ID alone is not sufficient for reliable interpretation.
-
-Ambiguous cases were manually checked using pharmacogenomic resources. Star-allele rows without reliable allele assignment were excluded from the final working table.
-
----
-
-## HLA-B*58:01 and allopurinol
-
-Allopurinol was considered through the `HLA-B*58:01` association because this allele is clinically relevant for severe cutaneous adverse reactions [3].
-
-However, the reduced VCF used in this project did not contain:
-
-- direct HLA typing data;
-- the proxy marker `rs9263726`;
-- validated HLA-B*58:01 information available for the current workflow.
-
-Therefore, the allopurinol / `HLA-B*58:01` rule was excluded from the active interpretation workflow.
-
-This decision was made to avoid unsupported clinical interpretation when the required HLA information is absent.
-
-Future support for allopurinol would require one of the following:
-
-- direct HLA typing from FASTQ/BAM data;
-- a full VCF containing validated HLA proxy markers;
-- integration of a dedicated HLA typing tool.
-
----
-
 ## Method notes
 
 ### VCF parsing
 
-The pipeline reads the input VCF line by line and extracts only variants whose coordinates are present in `pgx_variants.tsv`.
+The pipeline reads the VCF line by line and extracts only variants whose coordinates are present in `pgx_variants.tsv`.
 
 Both chromosome formats are supported:
 
@@ -414,7 +432,7 @@ chr6
 6
 ```
 
-The parser supports both uncompressed and gzip-compressed VCF files.
+The parser supports both plain VCF and gzip-compressed VCF.
 
 ---
 
@@ -441,13 +459,13 @@ If no defining variants are detected, the gene is interpreted as:
 *1/*1
 ```
 
-If a single heterozygous star allele is detected, the result is reported as:
+If one star allele is detected, the result is reported as:
 
 ```text
 *1/*X
 ```
 
-If a star allele is detected in a homozygous state, the result is reported as:
+If the defining markers are homozygous, the result can be reported as:
 
 ```text
 *X/*X
@@ -459,7 +477,7 @@ If multiple possible star alleles are detected without phasing, the result is re
 
 ### Rule priority
 
-The rule engine applies interpretation rules in the following priority order:
+The rule engine applies interpretation rules in the following order:
 
 1. combined star + star rules;
 2. combined star + SNP rules;
@@ -476,7 +494,7 @@ This project is a research prototype and has several limitations.
 
 1. HLA alleles are not directly inferred.
 
-   `HLA-B*58:01` was not interpreted because the available VCF did not contain HLA typing data or the proxy marker `rs9263726`.
+   `HLA-B*58:01` was not interpreted because the available reduced VCF did not contain HLA typing data or the proxy marker `rs9263726`.
 
 2. CYP2D6 copy number variation is not fully resolved.
 
@@ -508,6 +526,27 @@ Install dependencies:
 ```bash
 pip install pandas
 ```
+
+---
+
+## Files not included
+
+The following files are intentionally not included in the public repository:
+
+```text
+*.vcf
+*.vcf.gz
+*.tbi
+*.fa
+*.fna
+*.fasta
+*.fai
+*.fastq
+*.bam
+*.cram
+```
+
+These files are large and may contain genomic or reference data. The GRCh38 reference FASTA is not needed in the repository because the rule table already stores target coordinates for GRCh38 / hg38.
 
 ---
 
