@@ -83,8 +83,6 @@ The repository includes the following files:
 | `star_alleles.tsv` | Star-allele definitions |
 | `rulessnp_rules.tsv` | Direct SNP-based drug recommendation rules |
 | `rulesstar_alleles.tsv` | Diplotype-to-phenotype and drug recommendation rules |
-| `rules_comb_star_alleles_snp.tsv` | Combined star-allele + SNP rules |
-| `rules_comb_star_alleles.tsv` | Combined star-allele + star-allele rules |
 | `extracted_variants.tsv` | Variants extracted from the input VCF |
 | `coverage_report.tsv` | Quality-control report for marker calling |
 | `gene_calls.tsv` | SNP genotype calls and star-allele diplotype calls |
