@@ -149,8 +149,6 @@ The interpretation is based on manually curated TSV rule tables.
 | `star_alleles.tsv` | Definitions of star alleles through marker IDs |
 | `rulessnp_rules.tsv` | Direct SNP-based drug recommendation rules |
 | `rulesstar_alleles.tsv` | Diplotype-to-phenotype and drug recommendation rules |
-| `rules_comb_star_alleles_snp.tsv` | Combined star-allele + SNP rules |
-| `rules_comb_star_alleles.tsv` | Combined star-allele + star-allele rules |
 
 ---
 
