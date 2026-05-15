@@ -561,3 +561,5 @@ These files are large and may contain genomic or reference data. The GRCh38 refe
 `Genomic Pharmacist` implements a custom pharmacogenomic interpretation workflow from VCF to drug recommendations.
 
 The project demonstrates how manually curated pharmacogenetic knowledge can be integrated with targeted variant extraction, SNP genotype classification, star-allele interpretation, combined rule matching, and automated report generation without relying on PharmCAT.
+
+Project developed by Daria Makarova and Anastasia Solovyeva (@nika-abl) 
